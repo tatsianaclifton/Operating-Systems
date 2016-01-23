@@ -1,0 +1,246 @@
+#!/bin/bash                                                      
+################################################################
+#Name: CS344 Program 1                                         #
+#Author: Tatsiana Clifton                                      #
+#Description: The script calculates averages and medians from  #
+#             an input file of numbers or from standard input. #
+#             The script calculates the average and median     #
+#             across the rows or down the columns depending on #
+#             the stats command.                               #
+#                                                              #
+#Usage: stats {-rows|-cols} [file]                             #
+################################################################
+
+################################################################
+#                       VARIABLES                              #
+################################################################
+
+#variable to display correct usage of the script
+usageMsg="Usage: stats {-rows|-cols} [file]"
+#variable to hold the file
+inputFile=""
+
+#temporary file that uses the process id as part of its names
+#will be used for getting data from standard input 
+TMP1=temp1_$$
+
+#trap that removes the temp file if interrupt, hangup or 
+#terminate signals are received
+trap "rm -f temp1_$$; exit 1" INT HUP TERM  
+
+################################################################
+#                       FUNCTIONS                              #
+################################################################
+
+#Calculate average and median by row
+byRow()
+{
+   #print words Average and Median separated by TAB
+   echo -e "Average\tMedian"
+
+   #read while there are lines in the file
+   while read line
+      do
+         #set some variables to zero that 
+         #will be used for calculations
+         sum=0
+         average=0
+         median=0 
+         medianPos=0
+
+         #find how many numbers in every row of inputFile using wc
+         count=$(head -n 1 $inputFile | wc -w)
+         #save numbers from line into variable that they can be sorted
+         numInLine=$(echo $line | tr " " "\n") 
+         #sort numbers in line to be able to find median
+         sortedNumLine=$(echo $numInLine | tr " " "\n" | sort -n)
+
+      #go trough every number in line to calculate the sum 
+      for i in $line
+         do
+            #add number to the total sum of numbers in line
+            sum=`expr $sum + $i`
+      done
+
+      #find position of median, if the line has odd count median position
+      #is count/2 plus 1; if odd position is where the bigger number is
+      mod=`expr $count % 2`
+      #if even
+      if [ $mod -eq 0 ]  
+         then
+            #find the first and the second middle value to compare them
+            posOfFirst=`expr $count / 2`
+            posOfSecond=`expr $count / 2 + 1`
+            firstMid=$(echo $sortedNumLine | cut -d " " -f $posOfFirst)
+            secondMid=$(echo $sortedNumLine | cut -d " " -f $posOfSecond)
+            #if first is greater than second or they are equal
+            if [ $firstMid -ge $secondMid ]
+               then  
+                  #then median position is position of the first
+                  medianPos=$posOfFirst
+            #otherwise
+            else
+               #the position of the second
+               medianPos=$posOfSecond
+            fi
+      #if count is odd median position is in the middle
+      else
+         medianPos=`expr $count / 2 + 1`
+      fi 
+      #calculate average as total sum divided by count of numbers in line
+      #used the method offered by a student on discussion board:
+      #multiply sum by 10, add 5, divide by 10
+      average=`expr \( $sum \* 10 / $count + 5 \) / 10`
+      #extract the number at medianPosition that is a median
+      median=$(echo $sortedNumLine | cut -d " " -f $medianPos)
+
+      #print average and median separated by TAB to have better visibility
+      echo -e "$average\t$median" 
+   done < $inputFile   
+};
+
+#Calculate average and median by column
+byColumn()
+{
+   #print text "Averages:"
+   echo -e "Averages:"
+
+   #find number of columns in the file using wc
+   #used for for loop to make calculation for every column
+   countCol=$(head -n 1 $inputFile | wc -w)
+   #find how many numbers in column using wc
+   #used to find average  
+   countNum=$(cat $inputFile | wc -l)
+ 
+   #loop while there are columns
+   for i in $(seq 1 $countCol)  
+      do
+         #set some variables  to zero that 
+         #will be used in calculations  
+         average=0 
+         sum=0
+
+         #get values from the column i to loop trough them to find the sum 
+         numInCol=$(cut -f $i $inputFile | tr "\t" "\n")
+         
+         #loop through numbers in column to find their sum          
+         for i in $numInCol
+            do
+               #add number to the total sum 
+               sum=`expr $sum + $i`
+         done
+
+         #calculate average as total sum divided by count of numbers in line
+         #used the method offered by a student on discussion board:
+         #multiply sum by 10, add 5, divide by 10
+         average=`expr \( $sum \* 10 / $countNum + 5 \) / 10`
+         
+         #print average escaping new line that averages displayed
+         #as one line 
+         echo -e "$average\t\c" 
+   done
+  
+   #print text "Medians:"
+   echo -e "\nMedians:"
+      
+   #loop while there are columns
+   for i in $(seq 1 $countCol)
+      do
+         #set median to zero
+         medianPos=0
+
+         #get values from the column i and sort them that the median
+         #can be found 
+         numInCol=$(cut -f $i $inputFile | tr "\t" "\n" | sort -n)
+                  
+         #find position of median, if the line has odd count median position
+         #is count/2 plus 1; if odd position is where the bigger number is
+         mod=`expr $countNum % 2`
+         #if even
+         if [ $mod -eq 0 ]  
+            then
+               #find the first and the second middle value to compare them
+               posOfFirst=`expr $countNum / 2`
+               posOfSecond=`expr $countNum / 2 + 1`
+               firstMid=$(echo $numInCol | cut -d " " -f $posOfFirst)
+               secondMid=$(echo $numInCol | cut -d " " -f $posOfSecond)
+               #if first is greater than second or they are equal
+               if [ $firstMid -ge $secondMid ]
+                  then  
+                     #then median position is position of the first
+                     medianPos=$posOfFirst
+               #otherwise 
+               else
+                  #median position is position of the second
+                  medianPos=$posOfSecond
+               fi
+         #if count is odd 
+         else
+            #median is exacly in the middle
+            medianPos=`expr $countNum / 2 + 1`
+         fi 
+         #extract the number at medianPosition that is a median
+         median=$(echo $numInCol | cut -d " " -f $medianPos)
+
+         #print median escaping new line that averages displayed
+         #as one line 
+         echo -e "$median\t\c"
+   done
+}; 
+
+#################################################################
+#                        MAIN                                   #
+#################################################################
+
+#check the number of arguments: 1 or 2
+#if it is not 1 or 2 output usage message to standard error
+if [ "$#" -ne 1 ] && [ "$#" -ne 2 ]
+   then
+      echo $usageMsg >&2 
+      exit 1
+fi
+
+#check that the file was passed as an argument and 
+#it is readable. It nor readable output error to standard error.
+#If the file was not passed,  
+#create the file using the standard input
+if [[ "$2" != "" ]]
+   then
+      inputFile=$2
+      if [ ! -e "$inputFile" ] || [ ! -r "$inputFile" ] 
+         then
+            echo "./stats: cannot read $inputFile" >&2
+            exit 1
+      fi
+elif [[ $1 == -r* ]] || [[ $1 == -c* ]]
+   then      
+      #Read the standard input if the file was not passed as an argument 
+      #read lines until CTRL+d is pressed  
+      while read line
+         do
+            #append line into the temp file
+            echo -e "$line" >> $TMP1
+      done < /dev/stdin
+
+      #save data from the temp file into the input file
+      inputFile=$TMP1
+fi 
+
+#check the first argument for the correct format
+#if the first argument begins with "r" calculate by rows
+if [[ $1 == -r* ]]
+   then
+      byRow
+#if the first argument begins with "c" calculate by columns
+elif [[ $1 == -c* ]]
+   then
+      byColumn
+      echo "" 
+#otherwise output usage message to standard error
+else
+   echo $usageMsg >&2   
+   exit 1
+fi
+
+#remove temporary file
+rm -f temp1_$$  
