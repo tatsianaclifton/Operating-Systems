@@ -96,6 +96,13 @@ void createRooms(){
       rooms[k].name = roomName[k];
       //temporary set type of all rooms as MID_ROOM
       rooms[k].type = "MID_ROOM";
+
+      //set up connections
+      //assing random number from 3 to 6 to number of connections for
+      //current room
+      rooms[k].numConnections = rand() % 4 + 3;
+      printf("Num of con: %d\n", rooms[k].numConnections);
+      
    }
 
    //randomly pick the number of start room
@@ -116,6 +123,7 @@ void createRooms(){
          flag = 1;
       }
    }
+   
    createFiles(rooms);
 }
  
@@ -137,6 +145,13 @@ void createFiles(struct Room rooms[7]){
       }
       //add room's name to the file
       fprintf(fp, "ROOM NAME: %s\n", rooms[i].name);
+      //add room connections;
+      // using loop, because there number of connections
+      int j;  
+      for (j = 1; j >= rooms[i].numConnections; j++){
+          int k = rooms[i].connections[j];
+          fprintf(fp, "CONNECTION %d: %s\n", j, rooms[k].name); 
+      } 
       //add room's type to the file
       fprintf(fp, "ROOM TYPE: %s\n", rooms[i].type);
       //close the file 
