@@ -24,13 +24,13 @@
 struct Room{
   int id;
   char *name;
-  char nameGame[15];
+  char nameGame[15];//will hold names used for the game
   int numConnections;
   int currNumCon; 
   int connections[6];
   char conNames[6][15];//will be used when reading files to hold names
   char *type;
-  char typeGame[15];
+  char typeGame[15];//will hold types used for the game
 };
 
 //functions prototypes
@@ -42,8 +42,6 @@ void play();//present game to the player
 int main(){
    //declare char variable that will hold the name for directory
    char *dirName = makeDir();
-   //call function to create a directory and set up it as working
-   //makeDir(dirName);
    
    //change working directory to one that was created
    chdir(dirName); 
@@ -53,17 +51,19 @@ int main(){
 
    //play game
    play();
+
+   return 0;
 } 
 
 
 char *makeDir(){
-   //get the proccess id, will be used to create directory 
+   //get the process id, will be used to create directory 
    int pid = getpid();
    //generate name that will be used for creating new directory
    char *dirName = malloc(30);
    sprintf(dirName, "cliftota.rooms.%d", pid);
    //create new directory with generated name
-   if (mkdir(dirName, 0777) != 0)
+   if(mkdir(dirName, 0777) != 0)
    {
       exit(1);
    }
@@ -73,7 +73,7 @@ char *makeDir(){
 void createRooms(){
    //create array of 10 possible names for rooms,
    //will be used to pick 7 random names for rooms in the current game 
-   char *roomName[] = {"Berlin", "Amsterdam", "Vienna", "Paris", "Miami", "Venezia", "Boston", "Atlanta", "London", "Sydney"};
+   char *roomName[] = {"Berlin", "Amsterdam", "Vienna", "Paris", "Miami", "Venice", "Boston", "Atlanta", "London", "Sydney"};
   
    //randomize possible names of rooms in roomName,
    //it allow to pick different names for every game
@@ -83,7 +83,7 @@ void createRooms(){
    //the program; used function time, because it returns distinctive values
    srand(time(NULL));
    int i;  
-   for (i = 9; i > 0; i--){
+   for(i = 9; i > 0; i--){
       //choose a random index between 0 and i
       int j = rand() % (i+1);
       //swap elements at position i and j
@@ -117,7 +117,7 @@ void createRooms(){
    //for 7 rooms
    for(k = 0; k < 7; k++){
       //set up connections
-      //assing random number from 3 to 6 to number of connections for
+      //assign random number from 3 to 6 to number of connections for
       //current room
       rooms[k].numConnections = rand() % 4 + 3;
       //calculate how many additional connections needed
@@ -166,11 +166,11 @@ void createRooms(){
    
    //used to keep track if room was picked as start
    int flag = 0; 
-   while (flag == 0){
+   while(flag == 0){
       //randomly pick the number of end room
       int end = rand() % 7;
-      //if randomly picked number differs from choosen for start 
-      if (end != start){
+      //if randomly picked number differs from chosen for start 
+      if(end != start){
          //change type of the room to END_ROOM
          rooms[end].type = "END_ROOM"; 
          //change value to exit the while loop
@@ -188,22 +188,22 @@ void createFiles(struct Room rooms[7]){
    FILE *fp;
    //will hold the name of file
    char fileName[15];
-   for (i = 0; i < 7; i++){
+   for(i = 0; i < 7; i++){
       //create the name for file according to the current index
-      snprintf(fileName, sizeof(fileName), "%d.txt", i);
+      snprintf(fileName, sizeof(fileName), "%d", i);
       //open a file for writing
       fp = fopen(fileName, "w");
       //if there is an error while opening file
-      if (fp == NULL){
+      if(fp == NULL){
          exit(1);
-      }
+      }//end if
       //add room's name to the file
       fprintf(fp, "ROOM NAME: %s\n", rooms[i].name);
       //add room connections;
       // using loop, because there are at least 3 connections
       int j;
       int countCon = 1;  
-      for (j = 0; j < 6; j++){
+      for(j = 0; j < 6; j++){
           //save the id of room in list of connection 
           int k = rooms[i].connections[j];
           //if the room has connection
@@ -211,14 +211,14 @@ void createFiles(struct Room rooms[7]){
              //write the connection to the file
              fprintf(fp, "CONNECTION %i: %s\n", countCon, rooms[k].name);
              countCon++;               
-          }
-      } 
+          }//end if
+      }//end for 
       //add room's type to the file
       fprintf(fp, "ROOM TYPE: %s\n", rooms[i].type);
       //close the file 
       fclose(fp);  
-   }
-}
+   }//end for
+}//end function
  
 void play(){
    //declare an array of 7 structs
@@ -228,15 +228,15 @@ void play(){
    FILE *fp;
    //will hold the name of file
    char fileName[15];
-   for (i = 0; i < 7; i++){
-      //create th ename for file according to the current index
-      snprintf(fileName, sizeof(fileName), "%d.txt", i);
+   for(i = 0; i < 7; i++){
+      //create the name for file according to the current index
+      snprintf(fileName, sizeof(fileName), "%d", i);
       //open a file for reading
       fp = fopen(fileName, "r");
       //if there is an error while opening file
-      if (fp == NULL){
+      if(fp == NULL){
          exit(1);
-      }
+      }//end if
       //count how many lines in a file in order to find 
       //number of connections, 2 line are Name and Type, 
       //other will be connections; source: 
@@ -244,27 +244,25 @@ void play(){
       int ch;
       int linesCount = 0;
       while(EOF != (ch = getc(fp))){
-         if (ch == '\n'){
+         if(ch == '\n'){
             ++linesCount;
-         }
-      }
+         }//end if
+      }//end while
       //temporary will hold the name of the room red form file
       char name [15];
-      //read the name of the room skiped 11 bytes; these byte are
+      //read the name of the room skipped 11 bytes; these byte are
       //ROOM NAME 
       fseek(fp, 11, SEEK_SET);
       //save the name into temp variable
       fgets(name, 15, fp);
-      //romove newline charachter; source:
+      //remove the new line character; source:
       //stackoverflow.com/questions/2693776/removing-trailing-newline-character-from-fgets-input
       int len = strlen(name)-1;
       if(name[len] == '\n'){
          name[len] = '\0';
-      }
+      }//end if
       //copy name into struct Room
       strcpy(rooms[i].nameGame, name);
-      //set room id
-      rooms[i].id = i; 
       //copy number of connections into struct Room 
       rooms[i].numConnections = linesCount-2;
       int k;
@@ -274,61 +272,134 @@ void play(){
          fseek(fp, 14, SEEK_CUR);
          //save name of connection 
          fgets(name, 15, fp);
-         //romove newline charachter; source:
+         //remove newline character; source:
          //stackoverflow.com/questions/2693776/removing-trailing-newline-character-from-fgets-input
          int len = strlen(name)-1;
          if(name[len] == '\n'){
             name[len] = '\0';
-         }
+         }//end if
          //save name of connection into struct Room
          strcpy(rooms[i].conNames[k], name);
-      }
+      }//end for
       //copy type of the room
       char type[15]; 
       fseek(fp, 11, SEEK_CUR);     
       fgets(type, 15, fp);
-      //romove newline charachter; source:
+      //remove newline character; source:
       //stackoverflow.com/questions/2693776/removing-trailing-newline-character-from-fgets-input
       len = strlen(type)-1;
       if(type[len] == '\n'){
          type[len] = '\0';
-      }
+      }//end if
       //save type of room into struct Room
       strcpy(rooms[i].typeGame, type);
       fclose(fp);
-   }
-   int m, indexOfStart;
+   }//end for
+
+//use data that was saved from files to play the game
+   //indexes will be used for loops    
+   int m, k;
+   //will hold the index of the room with START_ROOM type
+   int indexOfStart;
+   //holds how many steps the player took
+   int steps = 0;
+   //holds the path the player took, can hold up to 1000 moves
+   char path[1000][15]; 
+   //will be used to find the start room
    char *type = "START_ROOM"; 
+   //loop through 7 rooms to find the start room
    for(m = 0; m < 7; m++){
+      //if the current room is the start room, save its id 
+      //and break the loop
       if(strcmp(rooms[m].typeGame, type) == 0){
          indexOfStart = m;
-      } 
-   }
-   printf("CURRENT LOCATION: %s\n", rooms[indexOfStart].nameGame);
-   printf("POSSIBLE CONNECTIONS: ");
-   for (m = 0; m < rooms[indexOfStart].numConnections; m++){
-      if (m == 0){
-         printf("%s", rooms[indexOfStart].conNames[m]);
-      }
-      else{
-         printf(", %s", rooms[indexOfStart].conNames[m]);
-      }
-   }
-   printf(".\nWHERE TO? >");
-   char input[15];
-   int flag = 0; 
-   fgets(input, 15, stdin);
-   int len = strlen(input)-1;
-   if(input[len] == '\n'){
-      input[len] = '\0';
-   }
-   for (m = 0; m < rooms[indexOfStart].numConnections; m++){
-       if (strcmp(rooms[indexOfStart].conNames[m], input) == 0){
-          flag = 1;
-          break;
-       }
-    }
-    if (flag == 0){
-       printf("HUH? I DON'T UNDERSTAND THAT ROOM. TRY AGAIN.\n");
-    }
-}                  
+         break;
+      }//end if 
+   }//end for 
+   //will be used to decide if continue the game
+   int loop = 0;
+   //set the current index to the index of start room 
+   int curIndex = indexOfStart;
+   //play while the player finds the end room
+   while(loop == 0){
+      //display the current room
+      printf("\nCURRENT LOCATION: %s\n", rooms[curIndex].nameGame);
+      //print the current room's connections
+      printf("POSSIBLE CONNECTIONS: ");
+      for(m = 0; m < rooms[curIndex].numConnections; m++){
+         if(m == 0){
+            //if its the first connection do not print comma before it
+            printf("%s", rooms[curIndex].conNames[m]);
+         }//end if
+         else{
+            //print with leading comma otherwise
+            printf(", %s", rooms[curIndex].conNames[m]);
+         }//end else
+      }//end for
+      //print the question for the player
+      printf(".\nWHERE TO? >");
+      //will hold the player's input
+      char input[15];
+      //will be used to know if print the error message 
+      int flag = 0; 
+      //get the player' input
+      fgets(input, 15, stdin);
+      //remove the new line character at the end to be able
+      //compare with rooms names
+      int len = strlen(input)-1;
+      if(input[len] == '\n'){
+         input[len] = '\0';
+      }//end if
+      //check if this room name is in the current room's connections
+      for(m = 0; m < rooms[curIndex].numConnections; m++){
+         //if connection is found 
+         if(strcmp(rooms[curIndex].conNames[m], input) == 0){
+            //loop trough rooms names to find the index of this room
+            for(k = 0; k < 7; k++){
+               if(strcmp(rooms[k].nameGame, input) == 0){
+                  //save this index to the current index
+                  //this room will be used as current location 
+                  //if it is not the end room
+                  curIndex = k;
+               }//end if  
+            }//end for
+            //save the room name to the taken path
+            strcpy(path[steps],input);
+            //increment number of steps taken
+            steps++;   
+            //set flag to 1; it will skip the printing error
+            //error is printed if flag is 0 
+            flag = 1;
+            break;
+         }//end if
+       }//end for
+       //check if flag is 0; if it is print error, because it means
+       //that the name that the player did not enter valid room
+       if(flag == 0){
+          printf("\nHUH? I DON'T UNDERSTAND THAT ROOM. TRY AGAIN.\n");
+       }//end if
+       //will be used to compare the current room type with "END_ROOM"
+       type = "END_ROOM";
+       //compare
+       if(strcmp(rooms[curIndex].typeGame, type) == 0){
+          //if it is the end room set loop to 1 to exit while loop
+          loop = 1;
+          //print congrats message   
+          printf("\nYOU HAVE FOUND THE END ROOM. CONGRATULATIONS!\n");
+          //print how many steps the player took and the path taken
+          printf("YOU TOOK %i STEPS. YOUR PATH TO VICTORY WAS: \n", steps);
+          for(m = 0; m <= steps; m++){
+             //if it is the last room in the path do not print
+             //the additional new line characters, because it is already
+             //there
+             if(m == steps){
+                printf("%s", path[m]);
+             }//end if
+             //otherwithe print name of the room and the new line character
+             else{
+                printf("%s\n", path[m]);
+             }//end else
+          }//end for 
+       }//end if 
+   }//end while
+}// end function                  
