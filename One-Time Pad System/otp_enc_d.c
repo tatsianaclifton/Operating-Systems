@@ -16,9 +16,16 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 
+int numChild = 0;
+
 void error(const char *msg){
    perror(msg);
    exit(1);
+}
+
+void handleEnc(int sock){
+
+
 }
 
 int main(int argc, char *argv[]){
@@ -44,22 +51,33 @@ int main(int argc, char *argv[]){
       error("Cannot bind");
    } 
    listen(sockfd, 5);
-   clilen = sizeof(cli_addr);
-   newsockfd = accept(sockfd, (struct sockaddr *) &cli_addr, &clilen);
-   if (newsockfd < 0){
-      error("Cannot accept");
-   }
-   bzero(buffer, 256);
-   n = read(newsockfd, buffer, 255);
-   if (n < 0){
-      error("Cannot read from socket");
-   }
-   printf("Here is the message: %s\n", buffer);
-   n = write(newsockfd, "I got your message", 18);
-   if (n < 0){
-      error("Cannot write to socket");
-   }
-   close(newsockfd);
-   close(sockfd);
+   while(1){
+      clilen = sizeof(cli_addr);
+      newsockfd = accept(sockfd, (struct sockaddr *) &cli_addr, &clilen);
+      if (newsockfd < 0){
+         error("Cannot accept");
+      }
+      numChild++;
+      pid_t pid = fork();
+      //if not forked
+      if (pid < 0){
+         perror("Fork failed"); 
+      }
+      //if child
+      if (pid == 0){
+         close(sockfd);
+         if (numChild > 5){
+            exit(0);
+         } 
+         handleEnc(newsockfd);
+      } 
+      //in parent process close new child socket
+      else{
+         close(newsockfd);
+         int status;
+         //wait for all child processes to finish
+         waitpid(-1, &status, WNOHANG);
+      }
+   }        
    return 0;
 } 
