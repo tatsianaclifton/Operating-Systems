@@ -24,8 +24,87 @@ void error(const char *msg){
 }
 
 void handleEnc(int sock){
-
-
+   int fileSize, keySize;
+   int received, n;
+   //recive size of the plzintext file 
+   if ((n = recv(sock, &received, sizeof(received), 0)) < -1){
+      error("server cannot receive");
+      exit(1);
+   }
+   printf("%i\n", received);  
+   fileSize = ntohs(received);
+   printf("%d\n", fileSize);  
+   //send the aknowlegdment message to the client
+   char *string = "I received the plaintext file size"; 
+   int len = strlen(string); 
+   if ((n = send(sock, string, len, 0)) == -1){
+      error("server cannot send");
+      exit(1);
+   }  
+   //receive plaintext file
+   int sizeReceived;
+   char fileContent[fileSize];
+   char buff[100];
+   fileContent[0] = '\0';
+   //while (sizeReceived < fileSize){
+      if ((n = recv(sock, buff, sizeof(buff), 0)) <= -1){
+         error("Cannot receive plaintext file");
+         exit(1);
+      }
+      //else{
+         //strncat(fileContent, buff, n);
+         //sizeReceived += n;
+      //}
+   //}
+   fileContent[sizeReceived] = '\0';
+   //send the aknowlegdment message to the client that file received 
+   char *str = "I received the plaintext file"; 
+   int l = strlen(str); 
+   if ((n = send(sock, str, l, 0)) == -1){
+      error("server cannot send");
+      exit(1);
+   }  
+   int received2;
+   //recive size of the key file 
+   if ((n = recv(sock, &received2, sizeof(received2), 0)) < -1){
+      error("server cannot receive");
+      exit(1);
+   }  
+   printf("2%s\n", fileContent);
+   keySize = ntohs(received2);
+   printf("3%s\n", fileContent);
+   //send the aknowlegdment message to the client
+   char *string1 = "I received the key file size"; 
+   printf("4%s\n", fileContent);
+   int ln = strlen(string1); 
+   if ((n = send(sock, string, ln, 0)) == -1){
+      error("server cannot send");
+      exit(1);
+   }  
+   //receive key file
+   int sizeReceived1;
+   char keyContent[keySize];
+   char buff1[100];
+   keyContent[0] = '\0';
+   while (sizeReceived1 < keySize){
+      if ((n = recv(sock, buff1, sizeof(buff1), 0)) <= -1){
+         error("Cannot receive key file");
+         exit(1);
+      }
+      else{
+         strncat(keyContent, buff1, n);
+         sizeReceived1 += n;
+      }
+   }
+   //send the aknowlegdment message to the client that key file received 
+   char *str1 = "I received the key file"; 
+   int l1 = strlen(str1); 
+   if ((n = send(sock, str1, l1, 0)) == -1){
+      error("server cannot send");
+      exit(1);
+   }  
+   keyContent[sizeReceived1] = '\0';
+   printf("%s\n", keyContent);
 }
 
 int main(int argc, char *argv[]){
@@ -78,6 +157,7 @@ int main(int argc, char *argv[]){
          //wait for all child processes to finish
          waitpid(-1, &status, WNOHANG);
       }
-   }        
+   }
+   close (newsockfd);        
    return 0;
 } 

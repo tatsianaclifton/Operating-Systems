@@ -61,7 +61,7 @@ void sendFile(FILE *fd, int size, int sock){
       exit(1);
    }
    //send file size 
-   forSend = htons(size);
+   forSend = size;
    if ((n = send(sock, &forSend, sizeof(forSend), 0)) == -1){
       error("Cannot send");
       exit(1); 
@@ -77,6 +77,12 @@ void sendFile(FILE *fd, int size, int sock){
    if ((n =  send(sock, buff, strlen(buff), 0)) == -1){
       error("Cannot send file");
       exit(1);
+   }
+   //get aknowlegdment that file received
+   memset(msg, 0, sizeof(msg));
+   if ((n = recv(sock, msg, sizeof(msg), 0)) == -1){
+       error("Cannot receive");
+       exit(1);
    }
    fclose(fd);
    free(buff); 
