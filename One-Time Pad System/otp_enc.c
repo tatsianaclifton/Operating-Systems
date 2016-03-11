@@ -55,7 +55,8 @@ void sendFile(FILE *fd, int size, int sock){
       fprintf(stderr, "Readinf error\n");
       exit(1);
    }
-   buff[size - 1] = '\0'; 
+   buff[size-1] = '\0';
+   //printf("%s", buff); 
    if (scan(buff) == 1){
       fprintf(stderr, "Files contain invalid characters.\n");
       exit(1);
@@ -72,7 +73,7 @@ void sendFile(FILE *fd, int size, int sock){
        error("Cannot receive");
        exit(1);
    }
-   printf("%s\n", msg);
+   //printf("%s\n", msg);
    //send file
    if ((n =  send(sock, buff, strlen(buff), 0)) == -1){
       error("Cannot send file");
@@ -86,17 +87,21 @@ void sendFile(FILE *fd, int size, int sock){
    }
    fclose(fd);
    free(buff); 
-   printf("Transfer completed\n");
+   //printf("Transfer completed\n");
 }
 
 void receiveEncFile(int sock, int fileSize){
-   int sizeReceived, n;
+   int sizeReceived = 0;
+   int n = 0;
    char fileContent[fileSize];
    char buff[100];
    fileContent[0] = '\0';
-   while (sizeReceived < fileSize){
-      if ((n = recv(sock, buff, sizeof(buff), 0)) <= -1){
+   while (sizeReceived+1 < fileSize){
+      if ((n = recv(sock, buff, sizeof(buff), 0)) == -1){
          error("Cannot receive file back");
+         exit(1);
+      }
+      else if (n == 0){
          exit(1);
       }
       else{
@@ -104,7 +109,8 @@ void receiveEncFile(int sock, int fileSize){
          sizeReceived += n;
       }
    }
-   fileContent[sizeReceived] = '\0';
+   //printf("size is %d\n", sizeReceived); 
+   fileContent[sizeReceived-1] = '\0';
    printf("%s\n", fileContent);
 }   
 
