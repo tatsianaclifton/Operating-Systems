@@ -5,7 +5,6 @@
  * Description: The program creates a key file of   *
  *              specified length.                   *    
  * Usage: keygen <keylength>                        *
- * Sources:                                         *
  ****************************************************/           
 #include <stdio.h>
 #include <stdlib.h>
@@ -15,8 +14,9 @@
 int main(int argc, char *argv[]){
    //check for the correct number of arguments
    if (argc != 2){
+      //if number of arguments is not 2, show error
       fprintf(stderr, "Usage: keygen <keylength>");
-      exit (1); 
+      exit (1); //exit with 1
    }
    //get the lenght of the key
    int keylength = atoi(argv[1]);
